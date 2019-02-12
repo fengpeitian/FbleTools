@@ -15,7 +15,9 @@ import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <pre>
@@ -47,7 +49,8 @@ public class Central extends AbstractBleClient {
             Log.d(TAG, Arrays.toString(data));
 
             String device_name = device.getName();
-            if (!TextUtils.isEmpty(device_name) && device.getName().equals("mix3")){
+            if (!TextUtils.isEmpty(device_name) && device.getName().equals("Pico G2")){
+                Log.d(TAG, new String(data));
                 connect(device);
             }
         }
@@ -72,11 +75,18 @@ public class Central extends AbstractBleClient {
                     @Override
                     public void run() {
                         try {
+                            //while (true) {
+                                Thread.sleep(3000);
+                                Map<String,Object> map = new HashMap<>();
+                                //map.put("request",true);
+                                //map.put("url","https://www.baidu.com");
+                                map.put("wifi","Fis98");
+                                map.put("password","fpt54321");
+                                String json = new Gson().toJson(map);
+                                send(json.getBytes());
 
-                            Thread.sleep(2000);
-                            String json = "{\"url\": \"http://www.baidu.com\", \"wifi\": \"Fis98\", \"password\": \"fpt54321\"}";
-                            send(json.getBytes());
 
+                            //}
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

@@ -5,9 +5,9 @@ publish{
     userOrg = 'fengpt'
     groupId = 'com.fpt.ble'
     artifactId = 'FbleTools'
-    publishVersion = '2.0.2'
+    publishVersion = '2.0.4'
     desc = 'ble tools for peripheral and central'
-    website = 'https://github.com/fengpeitian/MyBLE'
+    website = 'https://github.com/fengpeitian/FbleTools'
 }
 
 android {
@@ -16,8 +16,8 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 4
-        versionName "2.0.2"
+        versionCode 5
+        versionName "2.0.4"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 

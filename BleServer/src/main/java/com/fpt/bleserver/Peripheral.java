@@ -56,11 +56,12 @@ public class Peripheral extends AbstractBleServer {
                     @Override
                     public void run() {
                         try {
-                            Thread.sleep(3000);
+                            while (true) {
+                                Thread.sleep(2000);
 
-                            String json = "{\"ip\": \"192.168.2.4\", \"wifi\": \"Fis98\", \"battery\": \"100\"}";
-                            send(json.getBytes());
-
+                                String json = "{\"ip\": \"192.168.2.4\", \"wifi\": \"Fis98\", \"battery\": \"100\"}";
+                                send(json.getBytes());
+                            }
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

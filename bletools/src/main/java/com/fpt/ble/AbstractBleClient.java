@@ -165,6 +165,7 @@ public abstract class AbstractBleClient {
             mBluetoothGatt.disconnect();
             mBluetoothGatt.close();
             mBluetoothGatt = null;
+            mBondBluetoothDevice = null;
         }
     }
 
@@ -245,7 +246,11 @@ public abstract class AbstractBleClient {
                 gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
                 gatt.discoverServices();
             }else if (newState == BluetoothProfile.STATE_DISCONNECTED){
-                disconnect();
+                if (mBluetoothGatt != null) {
+                    mBluetoothGatt.disconnect();
+                    mBluetoothGatt.close();
+                    mBluetoothGatt = null;
+                }
                 if (mBondBluetoothDevice != null) {
                     if (reconnect_count <= BleSetting.MAX_RECONNECT_COUNT) {
                         connect(mBondBluetoothDevice);
