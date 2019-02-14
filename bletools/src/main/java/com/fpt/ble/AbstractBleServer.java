@@ -24,6 +24,7 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 
+
 /**
  * <pre>
  *   @author  : fpt
@@ -49,6 +50,7 @@ public abstract class AbstractBleServer {
      * 绑定的设备
      */
     private List<BluetoothDevice> mBondBluetoothDevices = new ArrayList<>();
+    private BluetoothDevice mBondBluetoothDevice;
 
     public AbstractBleServer(@NonNull Context context) {
         this.mContext = context;
@@ -66,7 +68,7 @@ public abstract class AbstractBleServer {
     /**
      * 初始化BLE蓝牙广播Advertiser，配置指定UUID的服务
      */
-    private void startBleAdvertise() {
+    public void startBleAdvertise() {
         if (mBluetoothLeAdvertiser == null) {
             mBluetoothLeAdvertiser = mBlueToothAdapter.getBluetoothLeAdvertiser();
         }
@@ -114,6 +116,55 @@ public abstract class AbstractBleServer {
             }
         };
         mBluetoothLeAdvertiser.startAdvertising(settings, advertiseData, mAdvertiseCallback);
+    }
+
+    /**
+     * 停止广播服务
+     */
+    public void stopBleAdvertise(){
+        if (mBluetoothLeAdvertiser != null && mAdvertiseCallback != null){
+            mBluetoothLeAdvertiser.stopAdvertising(mAdvertiseCallback);
+            mBluetoothLeAdvertiser = null;
+        }
+    }
+
+    /**
+     * 获得已连接的设备
+     * @return
+     */
+    public List<BluetoothDevice> getBondBluetoothDevices(){
+        return mBondBluetoothDevices;
+    }
+
+    /**
+     * 断开与指定设备的连接
+     * @param device
+     */
+    public void disconnect(BluetoothDevice device){
+        mGattServer.cancelConnection(device);
+    }
+
+    /**
+     * 从绑定列表中选择一个设备绑定，其他设备将会被断开连接
+     * @param device
+     * @return
+     */
+    public boolean bindBluetoothDevice(BluetoothDevice device){
+        if (mBondBluetoothDevices.contains(device)){
+            mBondBluetoothDevice = device;
+
+            stopBleAdvertise();
+
+            for (int i = 0; i < mBondBluetoothDevices.size(); i++) {
+                if (i != mBondBluetoothDevices.indexOf(device)){
+                    disconnect(mBondBluetoothDevices.get(i));
+                }
+            }
+
+            return true;
+        }else {
+            return false;
+        }
     }
 
     /**
@@ -196,13 +247,21 @@ public abstract class AbstractBleServer {
             if (newState == BluetoothProfile.STATE_CONNECTED){
                 if (!mBondBluetoothDevices.contains(device)){
                     mBondBluetoothDevices.add(device);
+
+                    onConnectionChange(device, newState);
                 }
             }else if (newState == BluetoothProfile.STATE_DISCONNECTED){
                 if (mBondBluetoothDevices.contains(device)){
                     mBondBluetoothDevices.remove(device);
+
+                    onConnectionChange(device, newState);
+
+                    if (mBondBluetoothDevice.equals(device)){
+                        mBondBluetoothDevice = null;
+                        startBleAdvertise();
+                    }
                 }
             }
-            onConnectionChange(device,newState);
             super.onConnectionStateChange(device, status, newState);
         }
 
@@ -294,22 +353,11 @@ public abstract class AbstractBleServer {
     }
 
     /**
-     * 停止广播服务
-     */
-    public void stopBleAdvertise(){
-        if (mBluetoothLeAdvertiser != null && mAdvertiseCallback != null){
-            mBluetoothLeAdvertiser.stopAdvertising(mAdvertiseCallback);
-            mBluetoothLeAdvertiser = null;
-        }
-    }
-
-    /**
      * 发送字节方法
      * @param bytes 要发送的字节
      * @return 是否发送成功
      */
     private boolean sendBytes(byte[] bytes){
-        BluetoothDevice mBondBluetoothDevice = mBondBluetoothDevices.get(mBondBluetoothDevices.size()-1);
         if (mBondBluetoothDevice != null) {
             mCharacteristic.setValue(bytes);
             boolean result = mGattServer.notifyCharacteristicChanged(mBondBluetoothDevice, mCharacteristic, false);
@@ -342,27 +390,35 @@ public abstract class AbstractBleServer {
      *      3.注意字节数不能超过4096，理论此发送速率 800 Bytes/S
      * @param _bytes
      */
-    public void send(byte[] _bytes){
+    public boolean send(byte[] _bytes){
         try {
             byte[] bytes = DataUtils.getData(_bytes);
             int all_length = bytes.length;
             DataBuffer dataBuffer = new DataBuffer(all_length);
             dataBuffer.enqueue(bytes,all_length);
+            boolean result = true;
             for (int i = 0; i < all_length/20; i++) {
                 byte[] sends = new byte[20];
                 dataBuffer.dequeue(sends,20);
                 //兼容IOS的情况下20ms间隔，安卓为7.5ms间隔
                 Thread.sleep(20);
                 boolean isSend = sendBytes(sends);
-                if (onSendProgressListener != null && isSend){
-                    onSendProgressListener.onProgress((i+1)*20,all_length);
+                if (isSend){
+                    if (onSendProgressListener != null) {
+                        onSendProgressListener.onProgress((i + 1) * 20, all_length);
+                    }
+                }else {
+                    result = false;
+                    break;
                 }
             }
+            return result;
         }catch (IllegalArgumentException e){
             e.printStackTrace();
         }catch (InterruptedException e){
             e.printStackTrace();
         }
+        return false;
     }
 
     /**
@@ -422,6 +478,6 @@ public abstract class AbstractBleServer {
      * @param device
      * @param connectionState
      */
-    protected abstract void onConnectionChange(BluetoothDevice device,int connectionState);
+    protected abstract void onConnectionChange(BluetoothDevice device, int connectionState);
 
 }

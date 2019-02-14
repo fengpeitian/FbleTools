@@ -158,6 +158,15 @@ public abstract class AbstractBleClient {
     }
 
     /**
+     * 连接
+     * @param address 对方地址
+     */
+    public void connect(String address) {
+        this.mBondBluetoothDevice = mBlueToothAdapter.getRemoteDevice(address);
+        mBluetoothGatt = mBondBluetoothDevice.connectGatt(mContext, false, mGattCallback);
+    }
+
+    /**
      * 断开连接
      */
     public void disconnect() {

@@ -11,6 +11,7 @@ import com.google.gson.Gson;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 
 /**
  * <pre>
@@ -60,6 +61,8 @@ public class Peripheral extends AbstractBleServer {
                                 Thread.sleep(2000);
 
                                 String json = "{\"ip\": \"192.168.2.4\", \"wifi\": \"Fis98\", \"battery\": \"100\"}";
+                                List<BluetoothDevice> devices = getBondBluetoothDevices();
+                                bindBluetoothDevice(devices.get(devices.size()-1));
                                 send(json.getBytes());
                             }
                         } catch (InterruptedException e) {

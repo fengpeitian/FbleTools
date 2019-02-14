@@ -49,9 +49,16 @@ public class Central extends AbstractBleClient {
             Log.d(TAG, Arrays.toString(data));
 
             String device_name = device.getName();
-            if (!TextUtils.isEmpty(device_name) && device.getName().equals("Pico G2")){
-                Log.d(TAG, new String(data));
-                connect(device);
+
+            if (data != null) {
+                String pico = new String(data);
+                if (!TextUtils.isEmpty(pico)) {
+                    Log.d(TAG, new String(data));
+                }
+                if (!TextUtils.isEmpty(device_name) && device.getName().equals("Pico G2")
+                        && !TextUtils.isEmpty(pico) && pico.equals("18610262364")) {
+                    connect(device);
+                }
             }
         }
 
