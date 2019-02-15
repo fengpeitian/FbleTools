@@ -1,7 +1,5 @@
 package com.fpt.bleclient;
 
-import android.text.TextUtils;
-
 /**
  * <pre>
  *   @author  : lucien.feng
@@ -11,38 +9,50 @@ import android.text.TextUtils;
  * </pre>
  */
 public class InfoBean {
+    /**
+     * ip地址
+     */
     private String ip;
-    private String wifi;
+    /**
+     * 电池电量
+     */
     private String battery;
-    private String url;
+    /**
+     * wifi名称
+     */
+    private String wifi;
+    /**
+     * wifi密码
+     */
     private String password;
+    /**
+     * 手机助手端推送来的url，本地选择浏览器打开
+     */
+    private String url;
+    /**
+     * 请求内容type
+     */
+    private int request = REQUEST_NONE;
+
+    public static final int REQUEST_NONE = 0;
+
+    public static final int REQUEST_HMD_STATE = 1;
+
+    public static final int REQUEST_DISCONNECT_BLE = 2;
+
+    public int getRequest() {
+        return request;
+    }
 
     @Override
     public String toString() {
-        StringBuffer buffer = new StringBuffer();
-        buffer.append("{");
-        buffer.append("   ");
-        if (!TextUtils.isEmpty(ip)){
-            buffer.append("ip='" + ip + '\'');
-            buffer.append("   ");
-        }
-        if (!TextUtils.isEmpty(wifi)){
-            buffer.append("wifi='" + wifi + '\'');
-            buffer.append("   ");
-        }
-        if (!TextUtils.isEmpty(battery)){
-            buffer.append("battery='" + battery + '\'');
-            buffer.append("   ");
-        }
-        if (!TextUtils.isEmpty(url)){
-            buffer.append("url='" + url + '\'');
-            buffer.append("   ");
-        }
-        if (!TextUtils.isEmpty(password)){
-            buffer.append("password='" + password + '\'');
-            buffer.append("   ");
-        }
-        buffer.append("}");
-        return buffer.toString();
+        return "InfoBean{" +
+                "ip='" + ip + '\'' +
+                ", battery='" + battery + '\'' +
+                ", wifi='" + wifi + '\'' +
+                ", password='" + password + '\'' +
+                ", url='" + url + '\'' +
+                ", request=" + request +
+                '}';
     }
 }

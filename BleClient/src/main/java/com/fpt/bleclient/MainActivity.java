@@ -3,12 +3,15 @@ package com.fpt.bleclient;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_ENABLE_BT = 99;
     private static final int REQUEST_ENABLE_LO = 98;
     private static final int REQUEST_PERMISSION_LOCATION = 97;
+    private LocalBroadcastManager localBroadcastManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +24,23 @@ public class MainActivity extends AppCompatActivity {
                 startService();
             }
         }
+        localBroadcastManager = LocalBroadcastManager.getInstance(this);
+        findViewById(R.id.bt_disconnect).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent("com.fpt.bleclient.DisconnectBroadcast");
+                intent.putExtra("event",0);
+                localBroadcastManager.sendBroadcast(intent);
+            }
+        });
+        findViewById(R.id.bt_scan).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent("com.fpt.bleclient.DisconnectBroadcast");
+                intent.putExtra("event",1);
+                localBroadcastManager.sendBroadcast(intent);
+            }
+        });
     }
 
     @Override

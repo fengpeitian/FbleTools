@@ -142,6 +142,7 @@ public abstract class AbstractBleServer {
      */
     public void disconnect(BluetoothDevice device){
         mGattServer.cancelConnection(device);
+        mGattServer.close();
     }
 
     /**
@@ -157,7 +158,7 @@ public abstract class AbstractBleServer {
 
             for (int i = 0; i < mBondBluetoothDevices.size(); i++) {
                 if (i != mBondBluetoothDevices.indexOf(device)){
-                    disconnect(mBondBluetoothDevices.get(i));
+                    mGattServer.cancelConnection(mBondBluetoothDevices.get(i));
                 }
             }
 

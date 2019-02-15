@@ -69,6 +69,18 @@ public class Central extends AbstractBleClient {
         String json = new String(receive);
         InfoBean info = new Gson().fromJson(json,InfoBean.class);
         Log.d(TAG,info.toString());
+
+        receive(json);
+
+        if (info.getRequest() == InfoBean.REQUEST_DISCONNECT_BLE){
+            disconnectBle();
+        }
+    }
+
+    protected void disconnectBle() {
+    }
+
+    protected void receive(String json) {
     }
 
     @Override
@@ -85,10 +97,10 @@ public class Central extends AbstractBleClient {
                             //while (true) {
                                 Thread.sleep(3000);
                                 Map<String,Object> map = new HashMap<>();
-                                //map.put("request",true);
+                                map.put("request",InfoBean.REQUEST_HMD_STATE);
                                 //map.put("url","https://www.baidu.com");
-                                map.put("wifi","Fis98");
-                                map.put("password","fpt54321");
+                                //map.put("wifi","Fis98");
+                                //map.put("password","fpt54321");
                                 String json = new Gson().toJson(map);
                                 send(json.getBytes());
 

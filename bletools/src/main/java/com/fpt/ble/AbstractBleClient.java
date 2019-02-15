@@ -153,17 +153,7 @@ public abstract class AbstractBleClient {
      * @param device 蓝牙设备
      */
     public void connect(BluetoothDevice device){
-        this.mBondBluetoothDevice = device;
-        mBluetoothGatt = mBondBluetoothDevice.connectGatt(mContext, false, mGattCallback);
-    }
-
-    /**
-     * 连接
-     * @param address 对方地址
-     */
-    public void connect(String address) {
-        this.mBondBluetoothDevice = mBlueToothAdapter.getRemoteDevice(address);
-        mBluetoothGatt = mBondBluetoothDevice.connectGatt(mContext, false, mGattCallback);
+        mBluetoothGatt = device.connectGatt(mContext, false, mGattCallback);
     }
 
     /**
@@ -172,8 +162,6 @@ public abstract class AbstractBleClient {
     public void disconnect() {
         if (mBluetoothGatt != null) {
             mBluetoothGatt.disconnect();
-            mBluetoothGatt.close();
-            mBluetoothGatt = null;
             mBondBluetoothDevice = null;
         }
     }
@@ -249,30 +237,32 @@ public abstract class AbstractBleClient {
 
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                reconnect_count = 0;
-                //此处连接优先级设置是为了分包之间设置为200ms不丢包
-                gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
-                gatt.discoverServices();
-            }else if (newState == BluetoothProfile.STATE_DISCONNECTED){
-                if (mBluetoothGatt != null) {
-                    mBluetoothGatt.disconnect();
-                    mBluetoothGatt.close();
-                    mBluetoothGatt = null;
-                }
-                if (mBondBluetoothDevice != null) {
-                    if (reconnect_count <= BleSetting.MAX_RECONNECT_COUNT) {
-                        connect(mBondBluetoothDevice);
-                        reconnect_count++;
+            if (status == BluetoothGatt.GATT_SUCCESS && gatt.equals(mBluetoothGatt)) {
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    mBondBluetoothDevice = gatt.getDevice();
+                    reconnect_count = 0;
+                    //此处连接优先级设置是为了分包之间设置为200ms不丢包
+                    mBluetoothGatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+                    mBluetoothGatt.discoverServices();
+                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    if (mBluetoothGatt != null) {
+                        mBluetoothGatt.close();
+                        mBluetoothGatt = null;
+                    }
+                    if (mBondBluetoothDevice != null) {
+                        if (reconnect_count <= BleSetting.MAX_RECONNECT_COUNT) {
+                            connect(mBondBluetoothDevice);
+                            reconnect_count++;
+                        }
                     }
                 }
+                onConnectionChange(newState);
             }
-            onConnectionChange(newState);
         }
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            if (characteristic != null) {
+            if (characteristic != null && gatt.equals(mBluetoothGatt)) {
                 try {
                     onReceiveBytes(characteristic.getValue());
                 }catch (IllegalArgumentException e){
@@ -283,7 +273,7 @@ public abstract class AbstractBleClient {
 
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            if (status == BluetoothGatt.GATT_SUCCESS) {
+            if (status == BluetoothGatt.GATT_SUCCESS && gatt.equals(mBluetoothGatt)) {
                 BluetoothGattService service = gatt.getService(BleSetting.UUID_SERVICE);
                 mCharacteristic = service.getCharacteristic(BleSetting.UUID_CHARACTERISTIC);
                 //开启通知
